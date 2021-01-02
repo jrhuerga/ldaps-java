@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="67039a22-9305-402b-84cc-f97d5e32863e">
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="cbc6e7ed-cc80-4d9d-b058-5c1a96081027" file="settings.properties" />
+	<flow name="ldapsjavaFlow" doc:id="7cf2607a-56a2-49f9-8cae-a912d7a32c15" >
+		<http:listener doc:name="Listener" doc:id="0c536e2a-095a-4b0c-a76f-bc62dfaae699" config-ref="HTTP_Listener_config" path="/userinfo"/>
+		<java:invoke-static doc:name="Invoke static" doc:id="9405423f-d9f6-4e9a-8b07-7817aba22c6e" class="LDAPSRead" method="getUserInfo(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)">
+			<java:args ><![CDATA[#[{
+url: p('url'),
+principal: p('principal'),
+credentials: p('credentials'),
+search: p('search'),
+name: attributes.queryParams.name
+}]]]></java:args>
+		</java:invoke-static>
+		<ee:transform doc:name="Transform Message" doc:id="4a693487-ed1e-40c4-bbe9-c12bcda561b0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
